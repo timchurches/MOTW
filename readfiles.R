@@ -260,10 +260,10 @@ plotit.modeshare <- function(region) {
 }
 
 plot.list.capitals <- lapply(selected.capitals, plotit,capital=T)
-# plot.list.balance <- lapply(selected.balance, plotit,capital=F)
-plot.list.balance <- lapply(states.territories, plotit,capital=F)
+plot.list.balance <- lapply(selected.balance, plotit,capital=F)
+plot.list.jurisdictions <- lapply(states.territories, plotit,capital=F)
 plot.list.modeshare <- list(plotit.modeshare("NSW")) # Should be for all Oz!
-args.list <- c(plot.list.capitals,plot.list.balance,plot.list.modeshare, list(nrow=2,ncol=(length(plot.list.capitals)+length(plot.list.balance)+length(plot.list.modeshare)+1)/2,heights = unit(c(0.6,0.4),"null"), left="Percentage of commuters",sub="Census 1976 to 2011",main="Method of Travel to Work - Australia 1976 to 2011"))
+args.list <- c(plot.list.capitals,plot.list.balance,plot.list.modeshare,plot.list.jurisdictions, list(nrow=3,ncol=(length(plot.list.capitals)+length(plot.list.balance)+length(plot.list.modeshare)+length(plot.list.jurisdictions)+2)/3,heights = unit(c(0.35,0.35,0.3),"null"), left="Percentage of commuters",sub="Census 1976 to 2011",main="Method of Travel to Work - Australia 1976 to 2011"))
 do.call(grid.arrange,args.list)
 
 plot.list.jurisdictions <- lapply(states.territories, plotit,capital=T)
