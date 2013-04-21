@@ -181,10 +181,10 @@ motw0611[motw0611$region %in% c("Canberra","Balance of ACT"),"region"] <- "ACT"
 motw <- rbind(motw,motw0611)
 rm(motw0611)
 
-region.order = c("Sydney","Balance of NSW","NSW","Melbourne","Balance of Victoria","Victoria","Brisbane","Balance of Queensland","Queensland","Hobart","Balance of Tasmania","Tasmania","Adelaide","Balance of SA","SA","Perth","Balance of WA","WA","Canberra", "Balance of ACT","Darwin","Balance of NT","NT","Other - Australia","Australia")
-region.labels = c("Sydney","Rest of NSW","NSW","Melbourne","Rest of Vic.","Victoria","Brisbane","Rest of Qld","Queensland","Hobart","Rest of Tas.","Tasmania","Adelaide","Rest of SA","SA","Perth","Rest of WA","WA","Canberra", "Rest of ACT","Darwin","Rest of NT","NT","Other - Australia","Australia")
+region.order = c("Sydney","Balance of NSW","NSW","Melbourne","Balance of Victoria","Victoria","Brisbane","Balance of Queensland","Queensland","Hobart","Balance of Tasmania","Tasmania","Adelaide","Balance of SA","SA","Perth","Balance of WA","WA","Darwin","Balance of NT","NT","Canberra", "Balance of ACT","Other - Australia","Australia")
+region.labels = c("Sydney","Rest of NSW","NSW","Melbourne","Rest of Vic.","Victoria","Brisbane","Rest of Qld","Queensland","Hobart","Rest of Tas.","Tasmania","Adelaide","Rest of SA","SA","Perth","Rest of WA","WA","Darwin","Rest of NT","NT","Canberra","Rest of ACT","Other - Australia","Australia")
 # motw$region <- factor(motw$region,levels=region.order,labels=region.labels,ordered=T)
-# motw$region <- factor(motw$region,levels=region.order,ordered=T)
+motw$region <- factor(motw$region,levels=region.order,ordered=T)
 
 excluded.modes <-  c("not applicable","worked at home","did not go to work","not stated","total")
 excluded.regions <- c("Other - Australia","Australia")
@@ -218,7 +218,7 @@ census.dates <- data.frame(census=c(1976,1981,1986,1991,1996,2001,2006,2011),cen
 
 motwp$census <- factor(motwp$census,levels=c(1976,1981,1986,1991,1996,2001,2006,2011),ordered=T,labels=c("76","81","86","91","96","01","06","11"))
 
-states.territories <- c("NSW","Victoria","Queensland","SA","WA","Tasmania","NT") # ACT deliberately missing
+states.territories <- c("NSW","Victoria","Queensland","Tasmania","SA","WA","NT") # ACT deliberately missing
 state.regions <- c("Sydney","Rest of NSW","Melbourne","Rest of Vic.","Brisbane","Rest of Qld","Hobart","Rest of Tas.","Adelaide","Rest of SA","Perth","Rest of WA")
 state.capitals <- c("Sydney","Melbourne","Brisbane","Hobart","Adelaide","Perth")
 state.rest <- c("Rest of NSW","Rest of Vic.","Rest of Qld","Rest of Tas.","Rest of SA","Rest of WA")
@@ -227,23 +227,29 @@ regions.list <- list(capitals=state.capitals,rest=state.rest)
 selected.capitals <- c("Sydney","Melbourne","Brisbane","Hobart","Adelaide","Perth","Darwin","Canberra")
 selected.balance <- c("Balance of NSW","Balance of Victoria","Balance of Queensland","Balance of Tasmania","Balance of SA","Balance of WA","Balance of NT")
 
-plotit <- function(regions,capital=T) {
+plotit <- function(regions,region.type="capital") {
   b <- motwp
   b$region <- as.character(b$region)
   # Remove data for trains, ferries and trams in places that don't have them or use then (< 0.1% of mode share)
   b <- b[!(b$region %in% c("Hobart","Canberra","ACT","Darwin","NT") & b$travel.mode == "train"),] 
   b <- b[!(b$region %in% c("Perth","Canberra","ACT","Darwin","NT") & b$travel.mode == "ferry/tram"),] 
   # Show a different set of travel modes for capitals vs rest of jurisdiction to avoid displaying useless data.
-  if (capital) {
+  if (region.type == "capital") {
     b <- b[b$region %in% regions & b$travel.mode %in% c("bicycle","walked","bus","train","ferry/tram","motorcycle","car/taxi/truck"),]
-    b$travel.mode <- factor(b$travel.mode,levels=c("bicycle","walked","bus","train","ferry/tram","motorcycle","car/taxi/truck"),labels=c("bicycle","walk","bus","train","ferry,tram","motorbike","car,truck"), ordered=T)    
+    b$travel.mode <- factor(b$travel.mode,levels=c("bicycle","walked","bus","train","ferry/tram","motorcycle","car/taxi/truck"),labels=c("BIKE","WALK","BUS","TRAIN","FER/TRAM","M-BIKE","CAR"), ordered=T) 
+    b$region <- factor(b$region,levels=regions,ordered=T)
+  } else if (region.type == "balance") {
+    b <- b[b$region %in% regions & b$travel.mode %in% c("bicycle","walked","bus","motorcycle","car/taxi/truck"),]
+    b$travel.mode <- factor(b$travel.mode,levels=c("bicycle","walked","bus","motorcycle","car/taxi/truck"),labels=c("BIKE","WALK","BUS","M-BIKE","CAR"), ordered=T)
+    b$region <- factor(b$region,levels=regions,ordered=T)
   } else {
     b <- b[b$region %in% regions & b$travel.mode %in% c("bicycle","walked","bus","motorcycle","car/taxi/truck"),]
-    b$travel.mode <- factor(b$travel.mode,levels=c("bicycle","walked","bus","motorcycle","car/taxi/truck"),labels=c("bicycle","walk","bus","motorbike","car,truck"), ordered=T)
+    b$travel.mode <- factor(b$travel.mode,levels=c("bicycle","walked","bus","motorcycle","car/taxi/truck"),labels=c("BIKE","WALK","BUS","M-BIKE","CAR"), ordered=T)
+    b$region <- factor(b$region,levels=regions,ordered=T)
   }
   p <- ggplot(data=b, aes(x=census, y=prop, group=travel.mode, colour=travel.mode)) 
   p <- p + geom_point() + geom_line() + facet_grid(travel.mode ~ region, scales="free_y", drop=F) 
-  p <- p + labs(x=NULL, y=NULL) + theme(legend.position="none")
+  p <- p + labs(x=NULL, y=NULL) + theme(legend.position="none") + theme(axis.text.y = element_text(size = rel(0.8)))
   return(p)
 }
 
@@ -259,11 +265,11 @@ plotit.modeshare <- function(region) {
   return(p)
 }
 
-plot.list.capitals <- lapply(selected.capitals, plotit,capital=T)
-plot.list.balance <- lapply(selected.balance, plotit,capital=F)
-plot.list.jurisdictions <- lapply(states.territories, plotit,capital=F)
+plot.list.capitals <- lapply(selected.capitals, plotit,region.type="capital")
+plot.list.balance <- lapply(selected.balance, plotit,region.type="balance")
+plot.list.jurisdictions <- lapply(states.territories, plotit,region.type="states/territories")
 plot.list.modeshare <- list(plotit.modeshare("NSW")) # Should be for all Oz!
-args.list <- c(plot.list.capitals,plot.list.balance,plot.list.modeshare,plot.list.jurisdictions, list(nrow=3,ncol=(length(plot.list.capitals)+length(plot.list.balance)+length(plot.list.modeshare)+length(plot.list.jurisdictions)+2)/3,heights = unit(c(0.35,0.35,0.3),"null"), left="Percentage of commuters",sub="Census 1976 to 2011",main="Method of Travel to Work - Australia 1976 to 2011"))
+args.list <- c(plot.list.capitals,plot.list.balance,plot.list.modeshare,plot.list.jurisdictions, list(nrow=3,ncol=(length(plot.list.capitals)+length(plot.list.balance)+length(plot.list.modeshare)+length(plot.list.jurisdictions)+2)/3,heights = unit(c(0.44,0.28,0.28),"null"), left="Percentage of commuters",sub="Census 1976 to 2011",main="Method of Travel to Work - Australia 1976 to 2011"))
 do.call(grid.arrange,args.list)
 
 plot.list.jurisdictions <- lapply(states.territories, plotit,capital=T)
