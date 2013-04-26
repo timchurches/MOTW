@@ -236,20 +236,29 @@ plotit <- function(regions,region.type="capital") {
   # Show a different set of travel modes for capitals vs rest of jurisdiction to avoid displaying useless data.
   if (region.type == "capital") {
     b <- b[b$region %in% regions & b$travel.mode %in% c("bicycle","walked","bus","train","ferry/tram","motorcycle","car/taxi/truck"),]
-    b$travel.mode <- factor(b$travel.mode,levels=c("bicycle","walked","bus","train","ferry/tram","motorcycle","car/taxi/truck"),labels=c("BIKE","WALK","BUS","TRAIN","FER/TRAM","M-BIKE","CAR"), ordered=T) 
+    b$travel.mode <- factor(b$travel.mode,levels=c("bicycle","walked","bus","train","ferry/tram","motorcycle","car/taxi/truck"),labels=c("Bike","Walk","Bus","Train","Ferry/Tram","Motorbike","Car/Truck"), ordered=T) 
     b$region <- factor(b$region,levels=regions,ordered=T)
   } else if (region.type == "balance") {
     b <- b[b$region %in% regions & b$travel.mode %in% c("bicycle","walked","bus","motorcycle","car/taxi/truck"),]
-    b$travel.mode <- factor(b$travel.mode,levels=c("bicycle","walked","bus","motorcycle","car/taxi/truck"),labels=c("BIKE","WALK","BUS","M-BIKE","CAR"), ordered=T)
+    b$travel.mode <- factor(b$travel.mode,levels=c("bicycle","walked","bus","motorcycle","car/taxi/truck"),labels=c("Bike","Walk","Bus","Motorbike","Car/Truck"), ordered=T)
     b$region <- factor(b$region,levels=regions,ordered=T)
   } else {
     b <- b[b$region %in% regions & b$travel.mode %in% c("bicycle","walked","bus","motorcycle","car/taxi/truck"),]
-    b$travel.mode <- factor(b$travel.mode,levels=c("bicycle","walked","bus","motorcycle","car/taxi/truck"),labels=c("BIKE","WALK","BUS","M-BIKE","CAR"), ordered=T)
+    b$travel.mode <- factor(b$travel.mode,levels=c("bicycle","walked","bus","motorcycle","car/taxi/truck"),labels=c("Bike","Walk","Bus","Motorbike","Car/Truck"), ordered=T)
     b$region <- factor(b$region,levels=regions,ordered=T)
   }
+  b$mhl <- NULL
+  b[b$travel.mode == "Bike" & b$region %in% c("Melbourne","Balance of Victoria","Victoria"),"mhl"] <- 3.8
+  b[b$travel.mode == "Bike" & b$region %in% c("Sydney","Balance of NSW","NSW","Hobart","Balance of Tasmania","Tasmania"),"mhl"] <- 3.9 
+  b[b$travel.mode == "Bike" & b$region %in% c("Brisbane","Balance of Queensland","Queensland","Adelaide","Balance of SA","SA"),"mhl"] <- 4
+  b[b$travel.mode == "Bike" & b$region %in% c("Perth","Balance of WA","WA","Darwin","Balance of NT","NT"),"mhl"] <- 4.1
+  b[b$travel.mode == "Bike" & b$region %in% c("Canberra","Balance of ACT","ACT"),"mhl"] <- 4.2
   p <- ggplot(data=b, aes(x=census, y=prop, group=travel.mode, colour=travel.mode)) 
   p <- p + geom_point() + geom_line() + facet_grid(travel.mode ~ region, scales="free_y", drop=F) 
-  p <- p + labs(x=NULL, y=NULL) + theme(legend.position="none") + theme(axis.text.y = element_text(size = rel(0.8)))
+  p <- p + labs(x=NULL, y=NULL) + theme(legend.position="none") + theme(axis.text.y = element_text(size = rel(0.6),colour="black"))
+  p <- p + theme(axis.text.x = element_text(size = rel(0.7),colour="black")) + theme(strip.text.y = element_text(size = rel(0.65)))
+  p <- p + theme(strip.text.x = element_text(size = rel(0.7)))
+  p <- p + geom_vline(aes(xintercept = mhl),colour="blue", linetype = "longdash")
   return(p)
 }
 
@@ -272,12 +281,12 @@ plot.list.modeshare <- list(plotit.modeshare("NSW")) # Should be for all Oz!
 args.list <- c(plot.list.capitals,plot.list.balance,plot.list.modeshare,plot.list.jurisdictions, list(nrow=3,ncol=(length(plot.list.capitals)+length(plot.list.balance)+length(plot.list.modeshare)+length(plot.list.jurisdictions)+2)/3,heights = unit(c(0.44,0.28,0.28),"null"), left="Percentage of commuters",sub="Census 1976 to 2011",main="Method of Travel to Work - Australia 1976 to 2011"))
 do.call(grid.arrange,args.list)
 
-plot.list.jurisdictions <- lapply(states.territories, plotit,capital=T)
-args.list <- c(plot.list.jurisdictions, list(nrow=2,ncol=length(plot.list.jurisdictions)/2,heights = unit(c(0.6,0.4),"null"), left="Percentage of commuters",sub="Census 1976 to 2011",main="Method of Travel to Work - Australia 1976 to 2011"))
-do.call(grid.arrange,args.list)
+# plot.list.jurisdictions <- lapply(states.territories, plotit,capital=T)
+# args.list <- c(plot.list.jurisdictions, list(nrow=2,ncol=length(plot.list.jurisdictions)/2,heights = unit(c(0.6,0.4),"null"), left="Percentage of commuters",sub="Census 1976 to 2011",main="Method of Travel to Work - Australia 1976 to 2011"))
+# do.call(grid.arrange,args.list)
 
-weather <- read.csv("Census_weather.csv",header=T)
-weather$Date <- as.Date(weather$Date,format="%d/%m/%Y")
+# weather <- read.csv("Census_weather.csv",header=T)
+# weather$Date <- as.Date(weather$Date,format="%d/%m/%Y")
 # ggplot(data=weather, aes(x=Date, y=rainfall)) + geom_point() + facet_grid(. ~ City, scales="free_y",space="free")
 
 
