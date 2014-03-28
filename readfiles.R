@@ -274,11 +274,25 @@ plotit.modeshare <- function(region) {
   return(p)
 }
 
+plotit.notes <- function(notenum) {
+  if (notenum==1) {
+    p <- ggplot() + xlim(0,1) + ylim(0,1)  + theme_bw() + theme(panel.border = element_blank(), panel.grid.major = element_blank(), panel.grid.minor = element_blank(), axis.line = element_blank(), axis.text = element_blank(), axis.title = element_blank(), axis.ticks = element_blank())
+    p <- p + annotate("text", x = 0.5, y = 0.95, label = "Data source: Australian Bureau of Statistics", size=2)
+  } else {
+    p <- ggplot() + xlim(0,1) + ylim(0,1)  + theme_bw() + theme(panel.border = element_blank(), panel.grid.major = element_blank(), panel.grid.minor = element_blank(), axis.line = element_blank(), axis.text = element_blank(), axis.title = element_blank(), axis.ticks = element_blank())
+    p <- p + annotate("text", x = 0.5, y = 0.95, label = "Methods of Travel to Work", size=1) 
+  }
+  return(p)
+}
+
 plot.list.capitals <- lapply(selected.capitals, plotit,region.type="capital")
 plot.list.balance <- lapply(selected.balance, plotit,region.type="balance")
 plot.list.jurisdictions <- lapply(states.territories, plotit,region.type="states/territories")
-plot.list.modeshare <- list(plotit.modeshare("NSW")) # Should be for all Oz!
-args.list <- c(plot.list.capitals,plot.list.balance,plot.list.modeshare,plot.list.jurisdictions, list(nrow=3,ncol=(length(plot.list.capitals)+length(plot.list.balance)+length(plot.list.modeshare)+length(plot.list.jurisdictions)+2)/3,heights = unit(c(0.44,0.28,0.28),"null"), left="Percentage of commuters",sub="Census 1976 to 2011",main="Method of Travel to Work - Australia 1976 to 2011"))
+# plot.list.modeshare <- list(plotit.modeshare("NSW")) # Should be for all Oz!
+plot.list.notes.1 <- list(plotit.notes(1))
+plot.list.notes.2 <- list(plotit.notes(2))
+
+args.list <- c(plot.list.capitals,plot.list.balance,plot.list.notes.1,plot.list.jurisdictions, plot.list.notes.2, list(nrow=3,ncol=(length(plot.list.capitals)+length(plot.list.balance)+length(plot.list.jurisdictions)+2)/3,heights = unit(c(0.44,0.28,0.28),"null"), left="Percentage of commuters",sub="Census 1976 to 2011",main="Method of Travel to Work - Australia 1976 to 2011"))
 do.call(grid.arrange,args.list)
 
 # plot.list.jurisdictions <- lapply(states.territories, plotit,capital=T)
